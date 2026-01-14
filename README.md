@@ -1,100 +1,73 @@
-# Thalamus Monorepo
+# 🧠 Thalamus
 
-This is the main Thalamus monorepo containing three submodules:
+This monorepo unifies the three components of Thalamus, a system for remote access to Claude Code and Codex sessions with end-to-end encryption.
 
-- **CLI** - Thalamus command-line interface
-- **Server** - Thalamus backend server
-- **App** - Thalamus application
+## What This Repo Contains
 
-## Project Structure
+Thalamus is split into three independent repositories organized as git submodules:
+
+### CLI (`./CLI/`)
+Node.js wrapper around the official Claude Code CLI tool. Spawns Claude processes, intercepts I/O, encrypts data, and syncs it to the server via WebSocket. Shows QR codes for mobile device pairing.
+
+**Tech:** Node.js, TypeScript, Ink (React for CLI), Socket.io, TweetNaCl
+
+### Server (`./Server/`)
+Fastify backend that relays encrypted messages between CLI and App. Zero-knowledge design—it stores encrypted blobs it cannot decrypt. Handles auth, session management, push notifications, and sharing.
+
+**Tech:** Fastify, PostgreSQL (Prisma), Redis, Socket.io
+
+### App (`./App/`)
+React Native mobile/web client for viewing and interacting with Claude sessions remotely. Scans QR codes for auth, receives real-time updates, decrypts messages locally.
+
+**Tech:** React Native, Expo, Socket.io, TweetNaCl, MMKV
+
+## Repository Structure
 
 ```
 Thalamus/
-├── CLI/           # Thalamus-CLI submodule
-├── Server/        # Thalamus-Server submodule
-├── App/           # Thalamus-App submodule
-├── .gitmodules    # Submodule configuration
-└── README.md      # This file
+├── CLI/                    # Thalamus-CLI submodule
+├── Server/                 # Thalamus-Server submodule
+├── App/                    # Thalamus-App submodule
+├── CLAUDE.md               # Architecture docs and dev guide
+├── SETUP.md                # VM deployment instructions
+├── docker-compose.yaml     # Combined deployment config
+└── README.md               # This file
 ```
 
-## Getting Started
+## How It Works Together
 
-### Initial Clone
+```
+┌─────────┐         ┌────────┐         ┌─────┐
+│   CLI   │◄───────►│ Server │◄───────►│ App │
+└─────────┘         └────────┘         └─────┘
+    │                    │
+    ├─ Wraps Claude      ├─ PostgreSQL (sessions, users)
+    ├─ Encrypts I/O      ├─ Redis (pub/sub)
+    ├─ WebSocket sync    ├─ MinIO (file storage)
+    └─ QR auth           └─ Push notifications
 
-To clone this repository with all submodules:
-
-```bash
-git clone --recurse-submodules https://github.com/Et-Ai-Labs/Thalamus.git
+All data is encrypted end-to-end. Server only sees encrypted blobs.
 ```
 
-Or if you've already cloned without submodules:
+## Data Flow Example
 
-```bash
-git clone https://github.com/Et-Ai-Labs/Thalamus.git
-cd Thalamus
-git submodule update --init --recursive
-```
+1. **User types in CLI** → CLI encrypts input → Server relays to App
+2. **Claude responds** → CLI encrypts output → Server relays to App
+3. **User approves permission on phone** → App encrypts response → Server relays to CLI
+4. **CLI forwards to Claude** → Process continues
 
-### Updating Submodules
+The server never sees plaintext. Encryption keys live only on CLI and App.
 
-To pull the latest changes from all submodules:
+## Quick Start
 
-```bash
-git submodule update --remote --merge
-```
+**For deployment:** See [SETUP.md](./SETUP.md) for VM deployment with docker-compose.
 
-To update a specific submodule:
+**For development:** See [CLAUDE.md](./CLAUDE.md) for architecture details and local development setup.
 
-```bash
-cd CLI  # or Server, or App
-git pull origin main
-cd ..
-git add CLI
-git commit -m "Update CLI submodule"
-```
+**Working with submodules:** Each component (CLI/Server/App) is a separate git repository. When you make changes in a submodule, you must commit in both the submodule and the parent repo to track the updated commit reference.
 
-## Working with Submodules
+## Submodule Links
 
-### Making Changes to a Submodule
-
-1. Navigate to the submodule directory:
-   ```bash
-   cd CLI  # or Server, or App
-   ```
-
-2. Make your changes and commit them:
-   ```bash
-   git add .
-   git commit -m "Your commit message"
-   git push origin main
-   ```
-
-3. Return to the parent repository and update the submodule reference:
-   ```bash
-   cd ..
-   git add CLI
-   git commit -m "Update CLI submodule to latest commit"
-   git push
-   ```
-
-### Pulling Changes from Others
-
-When someone updates a submodule, you'll need to update your local copy:
-
-```bash
-git pull
-git submodule update --init --recursive
-```
-
-## Submodule Repositories
-
-- CLI: https://github.com/Et-Ai-Labs/Thalamus-CLI
-- Server: https://github.com/Et-Ai-Labs/Thalamus-Server
-- App: https://github.com/Et-Ai-Labs/Thalamus-App
-
-## Important Notes
-
-- Each submodule is a separate git repository with its own history
-- Changes in submodules must be committed and pushed in both the submodule AND the parent repo
-- Always run `git submodule update` after pulling changes to sync submodule commits
-- The parent repo tracks specific commits of each submodule, not branches
+- [Thalamus CLI](https://github.com/Et-Ai-Labs/Thalamus-CLI)
+- [Thalamus Server](https://github.com/Et-Ai-Labs/Thalamus-Server)
+- [Thalamus App](https://github.com/Et-Ai-Labs/Thalamus-App)

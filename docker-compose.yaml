@@ -1,0 +1,125 @@
+services:
+    # Database
+    postgres:
+        image: postgres:15
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: thalamus
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    # Cache and Pub/Sub
+    redis:
+        image: redis:7
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    # S3-compatible storage
+    minio:
+        image: minio/minio
+        restart: unless-stopped
+        command: server /data --console-address ":9001"
+        environment:
+            MINIO_ROOT_USER: minioadmin
+            MINIO_ROOT_PASSWORD: minioadmin
+        volumes:
+            - minio_data:/data
+        healthcheck:
+            test: ["CMD", "mc", "ready", "local"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    # Initialize MinIO bucket
+    minio-init:
+        image: minio/mc
+        depends_on:
+            minio:
+                condition: service_started
+        entrypoint: >
+            /bin/sh -c "
+            sleep 5;
+            mc alias set local http://minio:9000 minioadmin minioadmin;
+            mc mb -p local/thalamus || true;
+            mc anonymous set download local/thalamus;
+            exit 0;
+            "
+
+    # Backend API Server
+    server:
+        build:
+            context: ./Server
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+            - "9090:9090"
+        environment:
+            DATABASE_URL: postgresql://postgres:postgres@postgres:5432/thalamus
+            REDIS_URL: redis://redis:6379
+            PORT: "3000"
+            NODE_ENV: production
+            THALAMUS_MASTER_SECRET: ${THALAMUS_MASTER_SECRET:-change-me-in-production}
+            METRICS_ENABLED: "true"
+            METRICS_PORT: "9090"
+            S3_HOST: minio
+            S3_PORT: "9000"
+            S3_USE_SSL: "false"
+            S3_ACCESS_KEY: minioadmin
+            S3_SECRET_KEY: minioadmin
+            S3_BUCKET: thalamus
+            S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/thalamus}
+            # GitHub OAuth (optional)
+            GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+            GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+            GITHUB_REDIRECT_URL: ${GITHUB_REDIRECT_URL}
+            # ElevenLabs (optional)
+            ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            minio-init:
+                condition: service_completed_successfully
+
+    # Database migrations
+    migrate:
+        build:
+            context: ./Server
+            dockerfile: Dockerfile
+        command: npx prisma migrate deploy
+        environment:
+            DATABASE_URL: postgresql://postgres:postgres@postgres:5432/thalamus
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    # Web App (React Native Web)
+    app:
+        build:
+            context: ./App
+            dockerfile: Dockerfile
+            args:
+                POSTHOG_API_KEY: ${POSTHOG_API_KEY:-}
+                REVENUE_CAT_STRIPE: ${REVENUE_CAT_STRIPE:-}
+        restart: unless-stopped
+        ports:
+            - "8080:80"
+        depends_on:
+            - server
+
+volumes:
+    postgres_data:
+    minio_data:
