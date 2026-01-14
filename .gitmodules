@@ -1,0 +1,9 @@
+[submodule "CLI"]
+	path = CLI
+	url = https://github.com/Et-Ai-Labs/Thalamus-CLI.git
+[submodule "Server"]
+	path = Server
+	url = https://github.com/Et-Ai-Labs/Thalamus-Server.git
+[submodule "App"]
+	path = App
+	url = https://github.com/Et-Ai-Labs/Thalamus-App.git
