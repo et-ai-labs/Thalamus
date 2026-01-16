@@ -49,7 +49,7 @@ Thalamus/
 
 **Repository**: https://github.com/Et-Ai-Labs/Thalamus-Server
 **Technology**: Fastify, PostgreSQL (Prisma), Redis, Socket.io
-**Hosted Instance**: `https://api-thalamus.etai.app` (free to use)
+**Hosted Instance**: `https://thalamus.etai.app` (free to use)
 
 **Purpose**: Zero-knowledge synchronization server that relays encrypted data between CLI and App.
 
@@ -187,7 +187,7 @@ sources/
 ### Production
 ```
 [CLI Process] ←→ [Cloud Server] ←→ [Mobile App(s)]
-  (User's      (api-thalamus.    (iOS/Android/Web)
+  (User's      (thalamus.    (iOS/Android/Web)
    Machine)      etai.app)
                  ↓
            [PostgreSQL]
@@ -300,7 +300,7 @@ yarn web      # Web browser
 ## Environment Variables
 
 ### CLI
-- `THALAMUS_SERVER_URL` - Server endpoint (default: https://api-thalamus.etai.app)
+- `THALAMUS_SERVER_URL` - Server endpoint (default: https://thalamus.etai.app)
 - `THALAMUS_WEBAPP_URL` - Web app URL (default: https://thalamus.etai.app)
 - `THALAMUS_HOME_DIR` - Data directory (default: ~/.thalamus)
 - `THALAMUS_EXPERIMENTAL` - Enable experimental features
@@ -352,7 +352,8 @@ These rules apply to CLI, Server, and App:
 - NEVER proactively create documentation files
 
 **Git & Commits:**
-- **No Attribution:** Never include Claude, AI, or bot attribution in commits/PRs
+- *Never include Claude, AI, or bot attribution in commits/PRs
+- NO "Co-Authored-By: Claude" messages at the end of commit/PR strings
 - Write clear, concise commit messages
 - Follow conventional commit format when applicable
 
@@ -563,5 +564,5 @@ sources/
 - **App Repository**: https://github.com/et-ai-labs/Thalamus-App
 - **CLI Repository**: https://github.com/et-ai-labs/Thalamus-CLI
 - **Server Repository**: https://github.com/et-ai-labs/Thalamus-Server
-- **Production Server**: https://api-thalamus.etai.app
+- **Production Server**: https://thalamus.etai.app
 - **Web App**: https://thalamus.etai.app
