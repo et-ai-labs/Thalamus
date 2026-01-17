@@ -84,6 +84,44 @@ See [SETUP.md](./SETUP.md) for full server VM deployment instructions.
 
 **Working with submodules:** Each component (CLI/Server/App) is a separate git repository. When you make changes in a submodule, you must commit in both the submodule and the parent repo to track the updated commit reference.
 
+## Production Deployment
+
+### CLI (npm)
+
+```bash
+# In CLI directory
+cd CLI/thalamus-cli
+
+# Update version in package.json
+# Commit changes, then publish:
+npm publish
+```
+
+The CLI is published to npm as `@et-ai-labs/thalamus`. Users install globally with `npm i -g thalamus`.
+
+### App (EAS)
+
+**For regular updates (OTA - no app store review):**
+```bash
+# In App directory
+cd App
+
+# 1. Update CHANGELOG.md with version notes
+# 2. Deploy instantly to all users:
+yarn ota:production
+```
+
+**For major releases (full build - requires app store review):**
+```bash
+# 1. Increment version in app.config.js
+# 2. Update CHANGELOG.md
+# 3. Build and submit:
+eas build --profile production --platform all
+eas submit --profile production --platform all
+```
+
+Use OTA updates for bug fixes, UI tweaks, and feature updates. Use full builds only when native code changes (new permissions, plugins, SDK upgrades).
+
 ## Submodule Links
 
 - [Thalamus CLI](https://github.com/Et-Ai-Labs/Thalamus-CLI)
