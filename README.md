@@ -58,9 +58,27 @@ All data is encrypted end-to-end. Server only sees encrypted blobs.
 
 The server never sees plaintext. Encryption keys live only on CLI and App.
 
-## Quick Start
+## Installation
 
-**For deployment:** See [SETUP.md](./SETUP.md) for VM deployment with docker-compose.
+### CLI
+
+```bash
+npm i -g thalamus
+```
+
+Then run `thalamus` in your terminal to start a Claude Code session with mobile access.
+
+### App
+
+- **iOS:** [App Store](https://apps.apple.com/app/thalamus/id6745386958)
+- **Android:** [Google Play](https://play.google.com/store/apps/details?id=app.etai.thalamus)
+- **Web:** [thalamus.etai.app](https://thalamus.etai.app)
+
+### Server
+
+See [SETUP.md](./SETUP.md) for full server VM deployment instructions.
+
+## Development
 
 **For development:** See [CLAUDE.md](./CLAUDE.md) for architecture details and local development setup.
 
